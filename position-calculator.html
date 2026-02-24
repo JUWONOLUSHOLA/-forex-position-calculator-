@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Position Size Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 10px;
+        }
+
+        .header h1 {
+            color: #58a6ff;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: #21262d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #8b949e;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #c9d1d9;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6e7681;
+            font-size: 0.9rem;
+        }
+
+        .results {
+            background: #161b22;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #30363d;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .lots {
+            color: #58a6ff;
+        }
+
+        .units {
+            color: #a371f7;
+        }
+
+        .money {
+            color: #3fb950;
+        }
+
+        .risk-meter {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .risk-low {
+            background: rgba(47, 129, 83, 0.2);
+            color: #3fb950;
+            border: 1px solid #3fb950;
+        }
+
+        .risk-medium {
+            background: rgba(187, 128, 9, 0.2);
+            color: #d29922;
+            border: 1px solid #d29922;
+        }
+
+        .risk-high {
+            background: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+            border: 1px solid #f85149;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #2ea043;
+        }
+
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+
+        .info-box {
+            background: rgba(88, 166, 255, 0.1);
+            border-left: 3px solid #58a6ff;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .saved-indicator {
+            text-align: center;
+            color: #3fb950;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .saved-indicator.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Position Size Calculator</h1>
+            <p>Smart risk management for forex traders</p>
+        </div>
+
+        <div class="info-box">
+            Enter your account details and trade parameters to calculate the optimal position size based on your risk tolerance.
+        </div>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="balance">Account Balance</label>
+                <div class="input-group">
+                    <input type="number" id="balance" placeholder="10000" min="1">
+                    <span class="input-suffix">USD</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="risk">Risk Percentage</label>
+                <div class="input-group">
+                    <input type="number" id="risk" placeholder="2" min="0.1" max="100" step="0.1">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="stopLoss">Stop Loss</label>
+                <div class="input-group">
+                    <input type="number" id="stopLoss" placeholder="50" min="1">
+                    <span class="input-suffix">pips</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pair">Currency Pair</label>
+                <select id="pair">
+                    <option value="EURUSD">EUR/USD</option>
+                    <option value="GBPUSD">GBP/USD</option>
+                    <option value="USDJPY">USD/JPY</option>
+                    <option value="USDCHF">USD/CHF</option>
+                    <option value="AUDUSD">AUD/USD</option>
+                    <option value="NZDUSD">NZD/USD</option>
+                    <option value="USDCAD">USD/CAD</option>
+                    <option value="XAUUSD">XAU/USD (Gold)</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="calculate()">Calculate Position Size</button>
+            <button class="btn btn-secondary" onclick="saveSettings()">Save Settings</button>
+            <div class="saved-indicator" id="savedMsg">✓ Settings saved!</div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <div class="result-item">
+                <span class="result-label">Position Size</span>
+                <span class="result-value lots" id="lotSize">0.00 lots</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Units</span>
+                <span class="result-value units" id="units">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Money at Risk</span>
+                <span class="result-value money" id="moneyRisk">$0.00</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Risk Percentage</span>
+                <span class="result-value" id="riskPercent">0%</span>
+            </div>
+            
+            <div class="risk-meter" id="riskMeter">
+                Risk Level: Unknown
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load saved settings on startup
+        window.onload = function() {
+            const saved = localStorage.getItem('calculatorSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                document.getElementById('balance').value = settings.balance || '';
+                document.getElementById('risk').value = settings.risk || '';
+                document.getElementById('stopLoss').value = settings.stopLoss || '';
+                document.getElementById('pair').value = settings.pair || 'EURUSD';
+            }
+        };
+
+        function calculate() {
+            // Get inputs
+            const balance = parseFloat(document.getElementById('balance').value);
+            const riskPercent = parseFloat(document.getElementById('risk').value);
+            const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+            const pair = document.getElementById('pair').value;
+
+            // Validation
+            if (!balance || !riskPercent || !stopLoss) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Calculate risk amount in money
+            const riskAmount = balance * (riskPercent / 100);
+            
+            // Pip value calculation (simplified for major pairs)
+            let pipValue = 10; // Default $10 per pip for standard lot on most pairs
+            
+            // Adjust for JPY pairs (different pip decimal place)
+            if (pair.includes('JPY')) {
+                pipValue = 8.5; // Approximate for USD/JPY at current rates
+            }
+            
+            // Adjust for gold
+            if (pair === 'XAUUSD') {
+                pipValue = 10; // $10 per pip for 1 lot of gold
+            }
+
+            // Calculate position size
+            // Formula: Risk Amount / (Stop Loss in Pips * Pip Value per Lot)
+            const lots = riskAmount / (stopLoss * pipValue);
+            const units = Math.floor(lots * 100000); // Convert to units (1 lot = 100,000 units)
+            
+            // Format lot size for display
+            let lotDisplay;
+            if (lots >= 1) {
+                lotDisplay = lots.toFixed(2) + ' lots';
+            } else if (lots >= 0.01) {
+                lotDisplay = lots.toFixed(2) + ' lots';
+            } else {
+                lotDisplay = lots.toFixed(4) + ' lots';
+            }
+
+            // Display results
+            document.getElementById('lotSize').textContent = lotDisplay;
+            document.getElementById('units').textContent = units.toLocaleString();
+            document.getElementById('moneyRisk').textContent = '$' + riskAmount.toFixed(2);
+            document.getElementById('riskPercent').textContent = riskPercent + '%';
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+
+            // Update risk meter
+            const riskMeter = document.getElementById('riskMeter');
+            riskMeter.className = 'risk-meter';
+            
+            if (riskPercent <= 2) {
+                riskMeter.classList.add('risk-low');
+                riskMeter.textContent = '✓ Low Risk - Safe for most traders';
+            } else if (riskPercent <= 5) {
+                riskMeter.classList.add('risk-medium');
+                riskMeter.textContent = '⚠ Medium Risk - Experienced traders only';
+            } else {
+                riskMeter.classList.add('risk-high');
+                riskMeter.textContent = '✗ High Risk - Dangerous for your account';
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                balance: document.getElementById('balance').value,
+                risk: document.getElementById('risk').value,
+                stopLoss: document.getElementById('stopLoss').value,
+                pair: document.getElementById('pair').value
+            };
+            
+            localStorage.setItem('calculatorSettings', JSON.stringify(settings));
+            
+            // Show saved indicator
+            const msg = document.getElementById('savedMsg');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+        }
+
+        // Auto-calculate when Enter key is pressed
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
